@@ -1,0 +1,93 @@
+Air99Probe props  2026-11-21 15:36:51
+start session              ok         00-00-00-1B-00-10-95-DB-86-01-00-00
+session 1
+set mode 2 (software)      ok         00-00-01-01-00-00-00-00-00-00-00-00
+set mode 1 (hardware)      ok         00-00-01-01-00-00-00-00-00-00-00-00
+83 properties readable in hardware mode, 83 in software mode
+  prop   1 (0x001)  hw            6  sw            6
+  prop   2 (0x002)  hw          800  sw          800
+  prop   3 (0x003)  hw            1  sw            2   <-- differs
+  prop   4 (0x004)  hw            0  sw            0
+  prop   9 (0x009)  hw            1  sw            1
+  prop  10 (0x00A)  hw            5  sw            5
+  prop  13 (0x00D)  hw            1  sw            1
+  prop  14 (0x00E)  hw       900000  sw       900000
+  prop  15 (0x00F)  hw         1000  sw         1000
+  prop  16 (0x010)  hw            1  sw            1
+  prop  17 (0x011)  hw         6940  sw         6940
+  prop  18 (0x012)  hw        11041  sw        11041
+  prop  19 (0x013)  hw      5703176  sw      5703176
+  prop  20 (0x014)  hw       262656  sw       262656
+  prop  21 (0x015)  hw      4456968  sw      4456968
+  prop  23 (0x017)  hw            0  sw            0
+  prop  53 (0x035)  hw            0  sw            0
+  prop  56 (0x038)  hw            5  sw            5
+  prop  57 (0x039)  hw            1  sw            1
+  prop  58 (0x03A)  hw            0  sw            0
+  prop  61 (0x03D)  hw     33554432  sw     33554432
+  prop  62 (0x03E)  hw     25075712  sw     25075712
+  prop  64 (0x040)  hw          108  sw          110   <-- differs
+  prop  65 (0x041)  hw            2  sw            2
+  prop  66 (0x042)  hw            1  sw            1
+  prop  67 (0x043)  hw            0  sw            0
+  prop  69 (0x045)  hw            0  sw            0
+  prop  72 (0x048)  hw            1  sw            1
+  prop  73 (0x049)  hw     16777215  sw     16777215
+  prop  74 (0x04A)  hw            1  sw            1
+  prop  76 (0x04C)  hw            0  sw            0
+  prop  77 (0x04D)  hw            0  sw            0
+  prop  78 (0x04E)  hw            0  sw            0
+  prop  83 (0x053)  hw         4174  sw         4178   <-- differs
+  prop  95 (0x05F)  hw            2  sw            2
+  prop  96 (0x060)  hw            0  sw            0
+  prop  98 (0x062)  hw            1  sw            1
+  prop  99 (0x063)  hw            1  sw            1
+  prop 110 (0x06E)  hw            0  sw            0
+  prop 116 (0x074)  hw            5  sw            5
+  prop 120 (0x078)  hw            0  sw            0
+  prop 150 (0x096)  hw            7  sw            7
+  prop 152 (0x098)  hw         1000  sw         1000
+  prop 153 (0x099)  hw            0  sw            0
+  prop 177 (0x0B1)  hw            1  sw            1
+  prop 180 (0x0B4)  hw            7  sw            7
+  prop 181 (0x0B5)  hw            0  sw            0
+  prop 182 (0x0B6)  hw            0  sw            0
+  prop 205 (0x0CD)  hw            0  sw            0
+  prop 208 (0x0D0)  hw            1  sw            1
+  prop 214 (0x0D6)  hw            0  sw            0
+  prop 216 (0x0D8)  hw            2  sw            2
+  prop 223 (0x0DF)  hw            4  sw            4
+  prop 224 (0x0E0)  hw           64  sw           64
+  prop 225 (0x0E1)  hw            0  sw            0
+  prop 226 (0x0E2)  hw     16711680  sw     16711680
+  prop 227 (0x0E3)  hw            0  sw            0
+  prop 228 (0x0E4)  hw     16711680  sw     16711680
+  prop 229 (0x0E5)  hw            4  sw            4
+  prop 234 (0x0EA)  hw          200  sw          200
+  prop 235 (0x0EB)  hw            0  sw            0
+  prop 236 (0x0EC)  hw            1  sw            1
+  prop 238 (0x0EE)  hw            0  sw            0
+  prop 239 (0x0EF)  hw            0  sw            0
+  prop 240 (0x0F0)  hw            1  sw            1
+  prop 241 (0x0F1)  hw            1  sw            1
+  prop 242 (0x0F2)  hw          320  sw          320
+  prop 243 (0x0F3)  hw          170  sw          170
+  prop 244 (0x0F4)  hw            0  sw            0
+  prop 245 (0x0F5)  hw            0  sw            0
+  prop 250 (0x0FA)  hw            1  sw            1
+  prop 251 (0x0FB)  hw            0  sw            0
+  prop 252 (0x0FC)  hw            1  sw            1
+  prop 253 (0x0FD)  hw     16760320  sw     16760320
+  prop 254 (0x0FE)  hw            4  sw            4
+  prop 255 (0x0FF)  hw            7  sw            7
+  prop 256 (0x100)  hw            0  sw            0
+  prop 257 (0x101)  hw            1  sw            1
+  prop 258 (0x102)  hw     16760320  sw     16760320
+  prop 259 (0x103)  hw            4  sw            4
+  prop 260 (0x104)  hw            7  sw            7
+  prop 261 (0x105)  hw         1281  sw         1281
+  prop 277 (0x115)  hw            1  sw            1
+get mode after             ok         00-00-01-02-00-01-00-00-00-00-00-00
+    = 1
+stop session               ok         00-00-01-1B-00-00-00-00-00-01-00-00
+log: C:\Admiral\LightDeck\logs\probe-20261121-153651-props.txt

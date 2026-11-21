@@ -1,0 +1,16 @@
+Air99Probe info  2026-11-21 15:29:04
+start session              ok         00-00-00-1B-00-BE-FF-80-87-01-00-00
+session 1
+get mode                   ok         00-00-01-02-00-01-00-00-00-00-00-00
+    = 1
+get brightness             ok         00-00-01-02-00-20-03-00-00-00-00-00
+    = 800
+get layout (1 ANSI, 2 ISO) ok         00-00-01-02-00-02-00-00-00-00-00-00
+    = 2
+get firmware               ok         00-00-01-02-00-08-06-57-00-00-00-00
+    = 5703176
+open buf 1 on 0x22         ok         00-00-01-0D-00-00-00-00-00-00-00-00
+describe buf 1             ok         00-00-01-09-00-00-00-00-00-00-00-00
+unbind buf 1               ok         00-00-01-05-00-00-00-00-00-00-00-00
+stop session               ok         00-00-01-1B-00-00-00-00-00-01-00-00
+log: C:\Admiral\LightDeck\logs\probe-20261121-152904-info.txt

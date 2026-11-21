@@ -1,0 +1,18 @@
+Air99Probe frame 143 0 155 222 3000  2026-11-21 15:35:01
+start session              ok         00-00-00-1B-00-65-D9-68-70-01-00-00
+session 1
+get mode before            ok         00-00-01-02-00-01-00-00-00-00-00-00
+    = 1
+set mode 2 (software)      ok         00-00-01-01-00-00-00-00-00-00-00-00
+open buf 0 on 0x22         ok         00-00-01-0D-00-00-00-00-00-00-00-00
+frame: 143 LEDs, 431 bytes, colour 0,155,222
+write begin (frame)        ok         00-00-01-06-00-00-00-00-00-00-00-00
+holding 3000 ms - look at the keyboard
+unbind buf 0               ok         00-00-01-05-00-00-00-00-00-00-00-00
+set mode 1 (hardware)      ok         00-00-01-01-00-00-00-00-00-00-00-00
+get mode after             ok         00-00-01-02-00-01-00-00-00-00-00-00
+    = 1
+get brightness after       ok         00-00-01-02-00-20-03-00-00-00-00-00
+    = 800
+stop session               ok         00-00-01-1B-00-00-00-00-00-01-00-00
+log: C:\Admiral\LightDeck\logs\probe-20261121-153501-frame.txt
