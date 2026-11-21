@@ -103,4 +103,11 @@ Raw output of tests 3 onwards is in `logs/`. Tests 1 and 2 ran on an earlier, th
 
 6. **2026-11-21, plugin in SignalRGB 2.5.86: works.** `plugin/Corsair_Vanguard_Air_99.js` copied to `Documents\WhirlwindFX\Plugins`. SignalRGB only scans plugins at startup, so it needed a restart; the log then shows "Custom Plugin File Loaded" and the keyboard follows the SignalRGB canvas. The user reports it working perfectly. Still open: positions of LEDs 124 and 139-142, a real device image.
 
+7. **2026-11-21, two programs at once (read-only).** Connection A started session 1 and opened buffer 1 on 0x22; connection B (a second handle to the same interface) started session 2. Results:
+   - **Sessions coexist.** A's session 1 kept working after B started session 2 and after B stopped it.
+   - **Every reply reaches every connection.** A saw B's replies and the other way round, so a client must match the command echo *and* the session byte (reply byte 2 after the report id) to find its own reply.
+   - **Buffers / handles are shared by everyone, not per session.** B opened buffer 1 while A had it open and got status 0; B's close then closed it for A too. Two clients on the same buffer will silently take it from each other.
+   Consequence: the plugin now uses **handle 3** for lighting. Corsair Web Hub only ever uses buffer 0 (its `Common_File_Index`), and so do other tools for files, so on handle 0 a lighting frame could be written into a file someone else just opened.
+8. **2026-11-21, stream on handle 3.** Same as test 5 but on handle 3: all 20 frames status 0, mode 1 restored, and **the keys flashed teal and red**. Handle 3 works for lighting.
+
 Comparison: SignalRGB's generic Bragi plugin drives the Galleon 100 SD (firmware 2.x, same header layout as the Air 99) with exactly mode 2 + `SetHWBrightness(1000)` + handle on 0x22 + frames every render, without a session.

@@ -8,7 +8,8 @@ using Air99Probe;
 //   info                         read-only: mode, brightness, layout, firmware, LightingController open/describe
 //   frame <leds> <r> <g> <b> <ms>  software mode, ONE colour frame to endpoint 0x22, hold, back to hardware mode
 //   props                        read every property 0-511 in hardware and software mode, show differences
-//   stream <leds> <n> <ms>       software mode, n frames (teal x5, red x5, ...), back to hardware mode
+//   stream <leds> <n> <ms> [h]   software mode, n frames (teal x5, red x5, ...) on handle h (default 0), back to hardware mode
+//   sessions                     read-only: two connections with their own sessions, does the first survive?
 //   restore                      fresh connection: unbind buffers 0/1, hardware mode
 //
 // Nothing here writes to flash. If a step times out, the probe reconnects and restores hardware mode.
@@ -113,13 +114,14 @@ try
 
         case "stream":
         {
-            // stream <leds> <frames> <intervalMs>: alternating teal / red frames, one reply read per frame, stop on first problem.
+            // stream <leds> <frames> <intervalMs> [handle]: alternating teal / red frames, one reply read per frame, stop on first problem.
             int leds = int.Parse(args[1]), frames = int.Parse(args[2]), interval = int.Parse(args[3]);
+            byte h = args.Length > 4 ? byte.Parse(args[4]) : (byte)0;
             bool ok = false;
             try
             {
                 if (await link.Cmd("set mode 2 (software)", CmdSet, Prop(PropMode, 2)) == null) return;
-                if ((await link.Cmd("open buf 0 on 0x22", CmdOpen, 0, EpLightingController, 0))?[4] != 0) return;
+                if ((await link.Cmd($"open buf {h} on 0x22", CmdOpen, h, EpLightingController, 0))?[4] != 0) return;
                 for (int f = 0; f < frames; f++)
                 {
                     (byte r, byte g, byte b) c = (f / 5) % 2 == 0 ? ((byte)0, (byte)155, (byte)222) : ((byte)255, (byte)0, (byte)0);
@@ -127,13 +129,14 @@ try
                     data[0] = DataTypeLightingController;
                     for (int i = 0; i < leds; i++) { data[2 + i * 3] = c.r; data[3 + i * 3] = c.g; data[4 + i * 3] = c.b; }
                     var p = new byte[5 + data.Length];
+                    p[0] = h;
                     BinaryPrimitives.WriteUInt32LittleEndian(p.AsSpan(1), (uint)data.Length);
                     data.CopyTo(p, 5);
                     var reply = await link.Cmd($"frame {f + 1}/{frames} {(c.r == 0 ? "teal" : "red")}", CmdWriteBegin, p);
                     if (reply == null || reply[4] != 0) return;
                     await Task.Delay(interval);
                 }
-                ok = await link.Cmd("unbind buf 0", CmdUnbind, 1, 0) != null
+                ok = await link.Cmd($"unbind buf {h}", CmdUnbind, 1, h) != null
                      && await link.Cmd("set mode 1 (hardware)", CmdSet, Prop(PropMode, 1)) != null;
                 await link.Get("mode after", PropMode);
             }
@@ -141,6 +144,31 @@ try
             {
                 if (!ok) { Log("!! a step failed or timed out; reconnecting to restore hardware mode"); link.Dispose(); link = Link.Connect(Log); await Restore(link); }
             }
+            break;
+        }
+
+        case "sessions":
+        {
+            // Read-only: does a second program's session cancel the first one's, and does an open handle survive it?
+            Log("-- A has a session; A opens buf 1 on 0x22 (read-only open)");
+            await link.Get("A: mode", PropMode);
+            await link.Cmd("A: open buf 1 on 0x22", CmdOpen, 1, EpLightingController, 0);
+            Log("-- B connects on its own handle and starts its own session");
+            var b = Link.Connect(Log);
+            try
+            {
+                await b.Get("B: mode", PropMode);
+                Log("-- back to A, using its original session");
+                await link.Get("A: mode (old session)", PropMode);
+                await link.Cmd("A: describe buf 1", CmdDescribe, 1);
+                await b.Get("B: mode again", PropMode);
+                Log("-- B tries to open buf 1 while A holds it");
+                var r = await b.Cmd("B: open buf 1 on 0x22", CmdOpen, 1, EpLightingController, 0);
+                if (r != null && r[4] == 0) await b.Cmd("B: unbind buf 1", CmdUnbind, 1, 1);
+            }
+            finally { await b.Close(); }
+            await link.Get("A: mode after B stopped", PropMode);
+            await link.Cmd("A: unbind buf 1", CmdUnbind, 1, 1);
             break;
         }
 
@@ -213,7 +241,17 @@ sealed class Link : IDisposable
         try
         {
             await _dev.WriteAsync(p, cts.Token);
-            var r = await _dev.ReadAsync(cts.Token);
+            // Every program with the channel open sees every reply, so skip ones that are not ours
+            // (different command echo or session).
+            byte[] r;
+            int skipped = 0;
+            while (true)
+            {
+                r = await _dev.ReadAsync(cts.Token);
+                if (r.Length > 4 && r[3] == cmd && (r[2] == session || r[1] == 0x0F)) break;
+                skipped++;
+            }
+            if (skipped > 0) _log($"    (skipped {skipped} reply/replies meant for someone else)");
             string status = r.Length > 4 ? (r[1] == 0x0F ? "NO SESSION" : r[4] == 0 ? "ok" : $"status {r[4]}") : "?";
             _log($"{label,-26} {status,-10} {BitConverter.ToString(r, 0, Math.Min(12, r.Length))}");
             return r;

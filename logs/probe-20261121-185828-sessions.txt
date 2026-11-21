@@ -1,0 +1,30 @@
+Air99Probe sessions  2026-11-21 18:58:28
+start session              ok         00-00-00-1B-00-46-FE-CF-3B-01-00-00
+session 1
+-- A has a session; A opens buf 1 on 0x22 (read-only open)
+get A: mode                ok         00-00-01-02-00-01-00-00-00-00-00-00
+    = 1
+A: open buf 1 on 0x22      ok         00-00-01-0D-00-00-00-00-00-00-00-00
+-- B connects on its own handle and starts its own session
+start session              ok         00-00-00-1B-00-F8-81-57-06-02-00-00
+session 2
+get B: mode                ok         00-00-02-02-00-01-00-00-00-00-00-00
+    = 1
+-- back to A, using its original session
+    (skipped 2 reply/replies meant for someone else)
+get A: mode (old session)  ok         00-00-01-02-00-01-00-00-00-00-00-00
+    = 1
+A: describe buf 1          ok         00-00-01-09-00-00-00-00-00-00-00-00
+    (skipped 2 reply/replies meant for someone else)
+get B: mode again          ok         00-00-02-02-00-01-00-00-00-00-00-00
+    = 1
+-- B tries to open buf 1 while A holds it
+B: open buf 1 on 0x22      ok         00-00-02-0D-00-00-00-00-00-00-00-00
+B: unbind buf 1            ok         00-00-02-05-00-00-00-00-00-00-00-00
+stop session               ok         00-00-02-1B-00-00-00-00-00-02-00-00
+    (skipped 4 reply/replies meant for someone else)
+get A: mode after B stopped ok         00-00-01-02-00-01-00-00-00-00-00-00
+    = 1
+A: unbind buf 1            ok         00-00-01-05-00-00-00-00-00-00-00-00
+stop session               ok         00-00-01-1B-00-00-00-00-00-01-00-00
+log: C:\Admiral\LightDeck\logs\probe-20261121-185828-sessions.txt

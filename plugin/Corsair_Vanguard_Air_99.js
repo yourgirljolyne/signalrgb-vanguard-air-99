@@ -7,7 +7,8 @@
 //   - It ignores the Bragi v1 header [0x08, cmd]. It needs the v1.5 header
 //     [sub 0, 0x01, session, cmd] and a host session (command 0x1B) first.
 //   - Lighting is the same LightingController scheme: software mode (prop 3 = 2),
-//     handle 0 on endpoint 0x22, data [0x12, 0x00, R,G,B per LED id].
+//     a handle on endpoint 0x22, data [0x12, 0x00, R,G,B per LED id]. We use handle 3, because
+//     Web Hub and other tools open files on buffer 0.
 //   - A single frame is accepted but never shown; the board only displays a steady stream.
 //   - More than ~143 LEDs in one write locked the command channel until replug, so the frame
 //     is sized to the highest LED id (142) + 1.
@@ -132,7 +133,9 @@ const B = Object.freeze({
 	MODE_SOFTWARE: 2,
 	EP_LIGHTING_CONTROLLER: 0x22,
 	DATA_TYPE_LIGHTING_CONTROLLER: 0x12,
-	LIGHTING_HANDLE: 0x00,
+	// Handle 3, not 0: Corsair Web Hub and other tools open their files on buffer 0, and sharing it
+	// would let a lighting frame land in someone else's open file.
+	LIGHTING_HANDLE: 0x03,
 });
 
 function okReply(reply, cmd) {
@@ -171,7 +174,21 @@ class Bragi15 {
 		device.clearReadBuffer();
 		device.write([0x00, 0x00, 0x01, session, cmd, ...payload], REPORT_LENGTH);
 
-		return device.read([0x00], REPORT_LENGTH, 50);
+		// Every program with the channel open sees every reply. Skip the ones that are not ours
+		// (other command echo or other session), up to a few.
+		for(let i = 0; i < 4; i++) {
+			const reply = device.read([0x00], REPORT_LENGTH, 50);
+
+			if(reply.length < 6) {
+				return reply;
+			}
+
+			if(reply[4] === cmd && (reply[3] === session || reply[2] === 0x0F)) {
+				return reply;
+			}
+		}
+
+		return [];
 	}
 
 	getProperty(id) {
