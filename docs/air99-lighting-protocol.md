@@ -67,9 +67,25 @@ Commands used (same ids as the existing ModernCorsairProtocol class):
 
 | prop | value | meaning |
 |---|---|---|
-| `0x03` mode | 1 | hardware (self operated); 2 = software (host controlled) |
+| `0x03` mode | 1 | 1 hardware (self operated), 2 software (host controlled); Web Hub also lists 6 "limited host controller" and 7 "esports" (3 and 5 are bootloaders, never set them) |
 | `0x02` brightness | 800 | 80 %, stored in flash, so we leave it alone |
 | `0x41` layout | 2 | ISO |
+
+## Operating mode, lighting and key remaps (tested 2026-11-22)
+
+| mode | streamed lighting | stored lighting effect | stored key remaps and macros |
+|---|---|---|---|
+| 1 hardware | shown | keeps drawing too: visible flicker between both | work |
+| 2 software | shown, clean | stopped | **off**: remapped keys send nothing; every key's state is reported on MI_03 instead |
+| 6 limited host | shown | keeps drawing (flicker) | off |
+
+Hardware brightness 0 (prop 2) in mode 1 also blanks the stream, so it can't hide the stored effect.
+
+In software mode the notification channel (MI_03, usage page 0xFF42 usage 2, 64-byte reports) sends
+`00 00 00 02` followed by a bitmap: bit *n* set = key id *n* is down (F4 = 61, FN = 122, S1 = 131, Copilot = 137).
+A report comes on every change. That is the hook iCUE uses to run remaps on the PC; DeckMapper's background key service
+does the same with the assignments stored on the keyboard. Remapped keys are the ones whose key-mapping bit for the
+active layer is cleared; all other keys still reach Windows normally. Dial turns were not seen in this report.
 
 ## Endpoints
 

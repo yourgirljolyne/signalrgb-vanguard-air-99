@@ -17,11 +17,14 @@ To remove it, delete the file and restart SignalRGB. The keyboard goes back to i
 Device settings in SignalRGB:
 
 - **Lighting Mode**: Canvas (the active effect) or Forced (one colour).
+- **Custom keys**: what happens to key remaps and macros stored on the keyboard (made in Corsair Web Hub or DeckMapper).
+  - *Played by DeckMapper (clean lighting)*, the default: the keyboard runs in software mode, where it stops running its own remaps and macros and reports every key to the PC instead (like it does for iCUE). [DeckMapper](https://github.com/yourgirljolyne/Deckmapper)'s background key service plays them. Without it, remapped keys do nothing while SignalRGB runs.
+  - *Kept by the keyboard*: hardware mode. Remaps and macros keep working without anything else installed, but the keyboard's own stored lighting effect keeps showing through between SignalRGB's frames.
 - **Debug: light one LED id**: lights only that LED id, white. Useful for mapping; -1 is off.
 
 ## Known limits
 
-- Other apps that talk to the keyboard's command channel at the same time (for example Corsair Web Hub) can switch it back to hardware mode. The plugin takes it back within about 2 seconds, but the other app's own writes may fail, so close them while SignalRGB is running. TrackDeck, SlotDeck and DeckMapper share the keyboard with the plugin from their next releases on (tested with SlotDeck writes while SignalRGB was streaming).
+- Other apps that talk to the keyboard's command channel at the same time (for example Corsair Web Hub) can switch it back to hardware mode. With *Custom keys* set to DeckMapper, the plugin takes it back within about 2 seconds, but the other app's own writes may fail, so close them while SignalRGB is running. TrackDeck, SlotDeck and DeckMapper share the keyboard with the plugin from their next releases on (tested with SlotDeck writes while SignalRGB was streaming).
 - LEDs 124 and 139-142 are listed by Corsair but not placed on the SignalRGB canvas yet.
 - The device picture in SignalRGB is a placeholder.
 
