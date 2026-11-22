@@ -21,7 +21,7 @@ Device settings in SignalRGB:
 
 ## Known limits
 
-- Other apps that talk to the keyboard's command channel at the same time (for example Corsair Web Hub, or TrackDeck / SlotDeck / DeckMapper) can switch it back to hardware mode. The plugin takes it back within about 2 seconds, but the other app's own writes may fail, so close them while SignalRGB is running.
+- Other apps that talk to the keyboard's command channel at the same time (for example Corsair Web Hub) can switch it back to hardware mode. The plugin takes it back within about 2 seconds, but the other app's own writes may fail, so close them while SignalRGB is running. TrackDeck, SlotDeck and DeckMapper share the keyboard with the plugin from their next releases on (tested with SlotDeck writes while SignalRGB was streaming).
 - LEDs 124 and 139-142 are listed by Corsair but not placed on the SignalRGB canvas yet.
 - The device picture in SignalRGB is a placeholder.
 

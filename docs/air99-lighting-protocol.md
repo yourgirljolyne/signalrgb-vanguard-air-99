@@ -111,3 +111,4 @@ Raw output of tests 3 onwards is in `logs/`. Tests 1 and 2 ran on an earlier, th
 8. **2026-11-21, stream on handle 3.** Same as test 5 but on handle 3: all 20 frames status 0, mode 1 restored, and **the keys flashed teal and red**. Handle 3 works for lighting.
 
 Comparison: SignalRGB's generic Bragi plugin drives the Galleon 100 SD (firmware 2.x, same header layout as the Air 99) with exactly mode 2 + `SetHWBrightness(1000)` + handle on 0x22 + frames every render, without a session.
+9. **2026-11-21, a second program writing while SignalRGB streams.** A file tool (SlotDeck) that matches replies by command and session, and leaves the mode alone when it is already 2, rewrote a screen file 6 times while the plugin streamed. Every write succeeded and the lighting did not pause. Not tested: a tool that switches mode itself during the stream.
