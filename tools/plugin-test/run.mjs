@@ -9,7 +9,6 @@ const src = path.join(here, "..", "..", "plugin", "Corsair_Vanguard_Air_99.js");
 const sent = [];
 let mode = 1, session = 0, dropSessionOnce = false, foreignOnce = false;
 globalThis.LightingMode = "Forced"; globalThis.forcedColor = "#009bde"; globalThis.debugLedId = -1;
-globalThis.KeyRemaps = "Played by DeckMapper (clean lighting)";
 globalThis.device = {
 	set_endpoint() {}, clearReadBuffer() {}, pause() {}, log(m) { console.log("  log:", m); },
 	color() { return [1, 2, 3]; },
@@ -37,9 +36,9 @@ const seen = new Map();
 pos.forEach((p, i) => { const k = p.join(","); if(seen.has(k)) console.log(`  shared cell ${k}: ${seen.get(k)} + ${names[i]}`); seen.set(k, names[i]); });
 check(pos.every(([x, y]) => x >= 0 && x < w && y >= 0 && y < h), `all ${pos.length} LEDs inside grid ${w}x${h}`);
 
-// Initialize, default setting: software mode for clean lighting
+// Initialize
 mod.Initialize();
-check(mode === 2, "Initialize puts the board in software mode (Custom keys: played by DeckMapper)");
+check(mode === 2, "Initialize puts the board in software mode");
 const open = sent.find(p => p[4] === 0x0D);
 check(open && hex(open, 8) === "00 00 01 01 0d 03 22 00", `open handle packet ${open && hex(open, 8)}`);
 
@@ -58,16 +57,9 @@ check(sent.length === 1, "foreign reply skipped without resending");
 sent.length = 0; dropSessionOnce = true; mod.Render();
 check(sent.some(p => p[4] === 0x1B) && sent[sent.length - 1][4] === 0x06, "session loss: new session, frame resent");
 
-// Software mode: another app switched to hardware mode -> plugin takes it back within 120 frames
+// Another app switched to hardware mode -> plugin takes it back within 120 frames
 mode = 1; for(let i = 0; i < 120; i++) mod.Render();
-check(mode === 2, "software mode: mode reset behind our back is detected and fixed");
-
-// Setting changed to "kept by the keyboard" -> hardware mode, and rendering never touches the mode
-globalThis.KeyRemaps = "Kept by the keyboard (stored lighting shows through)";
-mod.onKeyRemapsChanged();
-check(mode === 1, "switching the setting puts the board in hardware mode");
-mode = 2; sent.length = 0; for(let i = 0; i < 240; i++) mod.Render();
-check(mode === 2 && !sent.some(p => p[4] === 0x01 && p[5] === 3), "hardware setting: never changes the mode while rendering");
+check(mode === 2, "mode reset behind our back is detected and fixed");
 
 // Shutdown
 mod.Shutdown(false);

@@ -6,14 +6,9 @@
 // How this board differs from the Vanguard 96 plugin (0x2B0D):
 //   - It ignores the Bragi v1 header [0x08, cmd]. It needs the v1.5 header
 //     [sub 0, 0x01, session, cmd] and a host session (command 0x1B) first.
-//   - Lighting is the LightingController scheme: a handle on endpoint 0x22, data
-//     [0x12, 0x00, R,G,B per LED id]. We use handle 3, because Web Hub and other tools open
-//     files on buffer 0.
-//   - Software mode (prop 3 = 2) gives clean lighting, but the keyboard then stops running its own
-//     key remaps and macros: it reports every key's state on MI_03 (bitmap by key id) and expects
-//     host software to act, like iCUE does. DeckMapper can do that part. In hardware mode (1) the
-//     keyboard keeps its remaps, but its stored lighting effect keeps drawing between our frames.
-//     The "Custom keys" setting picks one; software mode is the default.
+//   - Lighting is the same LightingController scheme: software mode (prop 3 = 2),
+//     a handle on endpoint 0x22, data [0x12, 0x00, R,G,B per LED id]. We use handle 3, because
+//     Web Hub and other tools open files on buffer 0.
 //   - A single frame is accepted but never shown; the board only displays a steady stream.
 //   - More than ~143 LEDs in one write locked the command channel until replug, so the frame
 //     is sized to the highest LED id (142) + 1.
@@ -38,14 +33,12 @@ export function LedPositions() { return vLedPositions; }
 /* global
 LightingMode:readonly
 forcedColor:readonly
-KeyRemaps:readonly
 debugLedId:readonly
 */
 export function ControllableParameters() {
 	return [
 		{"property":"LightingMode", "group":"lighting", "label":"Lighting Mode", description: "Canvas uses the active effect, Forced sets one colour", "type":"combobox", "values":["Canvas", "Forced"], "default":"Canvas"},
 		{"property":"forcedColor", "group":"lighting", "label":"Forced Color", description: "The colour used when Lighting Mode is Forced", "min":"0", "max":"360", "type":"color", "default":"#009bde"},
-		{"property":"KeyRemaps", "group":"", "label":"Custom keys", description: "Your remaps and macros made in DeckMapper or Web Hub. Software mode needs DeckMapper running to play them; hardware mode keeps them on the keyboard but its stored lighting shows through.", "type":"combobox", "values":[REMAPS_BY_DECKMAPPER, REMAPS_BY_KEYBOARD], "default":REMAPS_BY_DECKMAPPER},
 		{"property":"debugLedId", "group":"lighting", "label":"Debug: light one LED id (-1 = off)", description: "Mapping aid. Lights only this raw LED id, white.", "min":"-1", "max":"142", "type":"number", "default":"-1"},
 	];
 }
@@ -57,23 +50,10 @@ export function Validate(endpoint) {
 const COMMAND_INTERFACE = 2;
 const REPORT_LENGTH = 1025;     // fixed for MI_02; do not read it from getHidInfo
 const LED_SLOTS = 143;          // LED ids 0..142 (highest id in Web Hub's list for this board)
-
-const REMAPS_BY_DECKMAPPER = "Played by DeckMapper (clean lighting)";
-const REMAPS_BY_KEYBOARD = "Kept by the keyboard (stored lighting shows through)";
-const MODE_CHECK_FRAMES = 120;  // software mode: re-check the operating mode about every 2 s
+const MODE_CHECK_FRAMES = 120;  // re-check the operating mode about every 2 s
 
 let bragi;
 let frameCounter = 0;
-
-function wantedMode() {
-	return KeyRemaps === REMAPS_BY_KEYBOARD ? B.MODE_HARDWARE : B.MODE_SOFTWARE;
-}
-
-export function onKeyRemapsChanged() {
-	if(bragi) {
-		bragi.startLighting();
-	}
-}
 
 export function Initialize() {
 	device.set_endpoint(COMMAND_INTERFACE, 0x0001, 0xFF42);
@@ -86,13 +66,13 @@ export function Render() {
 		return;
 	}
 
-	// Software mode: if another tool (e.g. Web Hub) put the board back in hardware mode, take it again.
-	// Hardware mode: never touch the mode while rendering. The Deck apps don't switch the mode while it is
-	// already software mode, so neither choice fights their file writes.
-	if(wantedMode() === B.MODE_SOFTWARE && ++frameCounter % MODE_CHECK_FRAMES === 0 && bragi.getProperty(B.PROP_MODE) !== B.MODE_SOFTWARE) {
+	if(++frameCounter % MODE_CHECK_FRAMES === 0 && bragi.getProperty(B.PROP_MODE) !== B.MODE_SOFTWARE) {
+		// Another app (e.g. a file write from TrackDeck / SlotDeck / DeckMapper or Web Hub) put the board back
+		// in hardware mode. Take it again.
 		device.log("Air 99: operating mode changed behind our back, re-entering software mode");
 		bragi.startLighting();
 	}
+
 	if(!bragi.sendFrame(buildFrame())) {
 		bragi.startLighting();
 	}
@@ -226,7 +206,7 @@ class Bragi15 {
 	startLighting() {
 		this.startSession();
 		this.raw(B.CMD_CLOSE, [0x01, B.LIGHTING_HANDLE]); // clean slate; fails harmlessly if not open
-		this.setProperty(B.PROP_MODE, wantedMode());
+		this.setProperty(B.PROP_MODE, B.MODE_SOFTWARE);
 		const reply = this.command(B.CMD_OPEN, [B.LIGHTING_HANDLE, B.EP_LIGHTING_CONTROLLER, 0x00]);
 		device.log(`Air 99: lighting handle ${okReply(reply, B.CMD_OPEN) ? "open" : "failed, status " + reply[5]}`);
 	}
