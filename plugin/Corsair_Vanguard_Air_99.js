@@ -15,6 +15,11 @@
 //
 // USB: MI_02 usage page 0xFF42 usage 0x01 = commands (1025-byte reports), MI_03 usage 0x02 = notifications.
 // Nothing in this plugin writes to flash: hardware brightness, profiles and effects are left alone.
+//
+// Custom keys module (optional): Corsair_Vanguard_Air_99_Keys.js plays the keyboard's own key remaps from the PC
+// in software mode, off by default. To drop it, delete that file and every line marked "Custom keys module".
+
+import { Air99KeyPlayer, IsKeyEndpoint, KeyParameters } from "./Corsair_Vanguard_Air_99_Keys.js"; // Custom keys module
 
 export function Name() { return "Corsair Vanguard Air 99"; }
 export function VendorId() { return 0x1B1C; }
@@ -34,17 +39,20 @@ export function LedPositions() { return vLedPositions; }
 LightingMode:readonly
 forcedColor:readonly
 debugLedId:readonly
+customKeys:readonly
 */
 export function ControllableParameters() {
 	return [
 		{"property":"LightingMode", "group":"lighting", "label":"Lighting Mode", description: "Canvas uses the active effect, Forced sets one colour", "type":"combobox", "values":["Canvas", "Forced"], "default":"Canvas"},
 		{"property":"forcedColor", "group":"lighting", "label":"Forced Color", description: "The colour used when Lighting Mode is Forced", "min":"0", "max":"360", "type":"color", "default":"#009bde"},
 		{"property":"debugLedId", "group":"lighting", "label":"Debug: light one LED id (-1 = off)", description: "Mapping aid. Lights only this raw LED id, white.", "min":"-1", "max":"142", "type":"number", "default":"-1"},
+		...KeyParameters(), // Custom keys module
 	];
 }
 
 export function Validate(endpoint) {
-	return endpoint.interface === 2 && endpoint.usage === 0x0001 && endpoint.usage_page === 0xFF42;
+	return (endpoint.interface === 2 && endpoint.usage === 0x0001 && endpoint.usage_page === 0xFF42) ||
+		IsKeyEndpoint(endpoint); // Custom keys module
 }
 
 const COMMAND_INTERFACE = 2;
@@ -54,11 +62,14 @@ const MODE_CHECK_FRAMES = 120;  // re-check the operating mode about every 2 s
 
 let bragi;
 let frameCounter = 0;
+let keyPlayer; // Custom keys module
 
 export function Initialize() {
 	device.set_endpoint(COMMAND_INTERFACE, 0x0001, 0xFF42);
 	bragi = new Bragi15();
 	bragi.startLighting();
+	device.addFeature("keyboard");                                         // Custom keys module
+	keyPlayer = new Air99KeyPlayer(bragi, m => device.log(m));            // Custom keys module
 }
 
 export function Render() {
@@ -76,6 +87,8 @@ export function Render() {
 	if(!bragi.sendFrame(buildFrame())) {
 		bragi.startLighting();
 	}
+
+	keyPlayer?.poll(customKeys === "On"); // Custom keys module
 }
 
 export function Shutdown(SystemSuspending) {
@@ -83,6 +96,7 @@ export function Shutdown(SystemSuspending) {
 		return;
 	}
 
+	keyPlayer?.stop(); // Custom keys module
 	// Back to the keyboard's own stored lighting.
 	bragi.stopLighting();
 }

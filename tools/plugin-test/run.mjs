@@ -9,8 +9,11 @@ const src = path.join(here, "..", "..", "plugin", "Corsair_Vanguard_Air_99.js");
 const sent = [];
 let mode = 1, session = 0, dropSessionOnce = false, foreignOnce = false;
 globalThis.LightingMode = "Forced"; globalThis.forcedColor = "#009bde"; globalThis.debugLedId = -1;
+globalThis.customKeys = "Off"; // the custom keys module has its own test: keys.mjs
+globalThis.keyboard = { sendHid() { throw new Error("custom keys are off: nothing may be sent"); } };
 globalThis.device = {
 	set_endpoint() {}, clearReadBuffer() {}, pause() {}, log(m) { console.log("  log:", m); },
+	addFeature() {}, getLastReadSize() { return 0; },
 	color() { return [1, 2, 3]; },
 	write(p, len) { if(len !== 1025) throw new Error("bad length"); sent.push(p.slice()); },
 	read() {
